@@ -10,6 +10,7 @@ body {
 }
 
 #takePicture {
+    margin-top: 20px; /* Adjust this value to control the space between the buttons and the image */
     font-size: 18px;
     padding: 10px 20px;
     background-color: #007bff;
@@ -25,6 +26,7 @@ body {
 
 /* Increase the font size and padding to make the buttons larger */
 #cancelButton, #submitButton {
+    margin-top: 20px; /* Adjust this value to control the space between the buttons and the image */
     font-size: 18px; /* Adjust the font size as needed */
-    padding: 12px 24px; /* Adjust the padding as needed */
+    padding: 10px 20px; /* Adjust the padding as needed */
 }
