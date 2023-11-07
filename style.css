@@ -22,3 +22,9 @@ body {
     max-width: 100%;
     max-height: 50vh; /* Set the maximum height to 50% of the viewport height */
 }
+
+/* Increase the font size and padding to make the buttons larger */
+#cancelButton, #submitButton {
+    font-size: 18px; /* Adjust the font size as needed */
+    padding: 12px 24px; /* Adjust the padding as needed */
+}
