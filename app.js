@@ -4,6 +4,9 @@ const previewImage = document.getElementById('previewImage');
 const cancelButton = document.getElementById('cancelButton');
 const submitButton = document.getElementById('submitButton');
 
+const dbName = 'indexedbd1';
+const objectStoreName = 'images';
+
 takePictureButton.addEventListener('click', () => {
     imageInput.click();
 });
@@ -35,14 +38,21 @@ function imageToBase64(file, callback) {
 
 // Function to save the base64 string to IndexedDB with a timestamp key
 function saveToIndexedDBWithTimestamp(value) {
-    const request = indexedDB.open('indexedbd1', 1);
+    const request = indexedDB.open(dbName, 1);
+
+    request.onupgradeneeded = function (event) {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains(objectStoreName)) {
+            db.createObjectStore(objectStoreName, { keyPath: 'timestamp' });
+        }
+    };
 
     request.onsuccess = function (event) {
         const db = event.target.result;
-        const transaction = db.transaction('images', 'readwrite'); // Object store name is 'images'
-        const store = transaction.objectStore('images');
+        const transaction = db.transaction(objectStoreName, 'readwrite'); // Object store name is 'images'
+        const store = transaction.objectStore(objectStoreName);
         const timestamp = new Date().getTime(); // Get the current timestamp
-        store.put(value, timestamp); // Use the timestamp as the key
+        store.put({ timestamp, data: value });
 
         transaction.oncomplete = function () {
             console.log('Image saved to IndexedDB with timestamp key:', timestamp);
@@ -60,3 +70,4 @@ submitButton.addEventListener('click', () => {
         });
     }
 });
+
