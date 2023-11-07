@@ -3,19 +3,9 @@ const imageInput = document.getElementById('imageInput');
 const previewImage = document.getElementById('previewImage');
 const cancelButton = document.getElementById('cancelButton');
 const submitButton = document.getElementById('submitButton');
-
 const dbName = 'indexedbd1';
 const objectStoreName = 'images';
 const apiUrl = 'https://cmja2h0xlg.execute-api.us-west-1.amazonaws.com/beta/mvrs/';
-
-// Function to convert the selected image to a base64 string
-function imageToBase64(file, callback) {
-    const reader = new FileReader();
-    reader.onload = function (event) {
-        callback(event.target.result);
-    };
-    reader.readAsDataURL(file);
-}
 
 // Function to initialize IndexedDB and create the object store
 function initIndexedDB(callback) {
@@ -51,57 +41,56 @@ function saveImageToIndexedDB(db, file) {
 function deleteImageFromIndexedDB(db, timestamp) {
     const transaction = db.transaction(objectStoreName, 'readwrite');
     const store = transaction.objectStore(objectStoreName);
+
     const deleteRequest = store.delete(timestamp);
 
-    deleteRequest.onsuccess = () => {
-        console.log('Image deleted from IndexedDB:', timestamp);
+    deleteRequest.onsuccess = function () {
+        console.log(`Image with timestamp ${timestamp} deleted from IndexedDB.`);
+        db.close();
     };
 
-    deleteRequest.onerror = (event) => {
-        console.error('Error deleting image from IndexedDB:', event.target.error);
+    deleteRequest.onerror = function (event) {
+        console.error(`Error deleting image: ${event.target.error}`);
     };
 }
 
-// Function to upload images to the specified API endpoint
-function uploadImagesFromIndexedDB() {
-    initIndexedDB((db) => {
-        const transaction = db.transaction(objectStoreName, 'readonly');
-        const store = transaction.objectStore(objectStoreName);
-        const request = store.openCursor();
+// Function to upload an image from IndexedDB to the API
+function uploadImageToAPI(db, timestamp) {
+    const transaction = db.transaction(objectStoreName, 'readonly');
+    const store = transaction.objectStore(objectStoreName);
 
-        request.onsuccess = (event) => {
-            const cursor = event.target.result;
-            if (cursor) {
-                const timestamp = cursor.key;
-                const imageFile = cursor.value.file;
+    const getRequest = store.get(timestamp);
 
-                // Create a FormData object to send the image file
-                const formData = new FormData();
-                formData.append('file', imageFile, `image-${timestamp}.jpg`);
+    getRequest.onsuccess = function (event) {
+        const imageData = event.target.result;
 
-                // Send a PUT request to the API endpoint with the image in the body
-                fetch(apiUrl + `image-${timestamp}.jpg`, {
-                    method: 'PUT',
-                    body: formData,
-                })
-                    .then((response) => {
-                        if (response.ok) {
-                            // If the upload is successful, delete the image from IndexedDB
-                            deleteImageFromIndexedDB(db, timestamp);
-                        } else {
-                            console.error(`Error uploading image ${timestamp}: ${response.status}`);
-                        }
-                    })
-                    .catch((error) => {
-                        console.error(`Error uploading image ${timestamp}: ${error}`);
-                    });
+        if (imageData) {
+            const filename = `image-${timestamp}.jpg`;
 
-                cursor.continue();
-            } else {
-                db.close();
-            }
-        };
-    });
+            // Create a FormData object to send the image as a binary file
+            const formData = new FormData();
+            formData.append('image', imageData.file, filename);
+
+            // Make a PUT request to the API
+            fetch(apiUrl + filename, {
+                method: 'PUT',
+                body: formData,
+            })
+            .then((response) => {
+                if (response.ok) {
+                    console.log(`Image ${filename} uploaded successfully.`);
+                    
+                    // After successful upload, you can delete the image from IndexedDB
+                    deleteImageFromIndexedDB(db, timestamp);
+                } else {
+                    console.error(`Error uploading image ${filename}: ${response.status}`);
+                }
+            })
+            .catch((error) => {
+                console.error(`Error uploading image ${filename}: ${error}`);
+            });
+        }
+    };
 }
 
 takePictureButton.addEventListener('click', () => {
@@ -130,8 +119,7 @@ submitButton.addEventListener('click', () => {
         const file = imageInput.files[0];
         initIndexedDB((db) => {
             saveImageToIndexedDB(db, file);
-            // Upload the image to the API
-            uploadImagesFromIndexedDB();
+            uploadImageToAPI(db, file.lastModified);
         });
     }
 });
