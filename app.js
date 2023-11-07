@@ -3,7 +3,6 @@ const imageInput = document.getElementById('imageInput');
 const previewImage = document.getElementById('previewImage');
 const cancelButton = document.getElementById('cancelButton');
 const submitButton = document.getElementById('submitButton');
-
 const dbName = 'indexedbd1';
 const objectStoreName = 'images';
 const apiUrl = 'https://cmja2h0xlg.execute-api.us-west-1.amazonaws.com/beta/mvrs/';
@@ -32,30 +31,35 @@ function saveImageToIndexedDB(db, file) {
 
     transaction.oncomplete = function () {
         console.log('Image saved to IndexedDB with timestamp key:', timestamp);
-        db.close();
+        uploadImageToAPI(db, timestamp);
     };
 }
 
-function uploadImageToAPI(db, timestamp, file) {
-    const filename = `image-${timestamp}.jpg`;
-    const requestOptions = {
-        method: 'PUT',
-        body: file,
-    };
+function uploadImageToAPI(db, timestamp) {
+    const transaction = db.transaction(objectStoreName, 'readonly');
+    const store = transaction.objectStore(objectStoreName);
+    const getRequest = store.get(timestamp);
 
-    fetch(apiUrl + filename, requestOptions)
-        .then((response) => {
+    getRequest.onsuccess = function () {
+        const fileData = getRequest.result.file;
+        const filename = `image-${timestamp}.jpg`;
+
+        fetch(apiUrl + filename, {
+            method: 'PUT',
+            body: fileData
+        })
+        .then(response => {
             if (response.ok) {
                 console.log(`Image uploaded to ${apiUrl}${filename}`);
-                // If the upload is successful, you can remove the image from IndexedDB
                 deleteImageFromIndexedDB(db, timestamp);
             } else {
                 console.error(`Error uploading image ${filename}: ${response.status}`);
             }
         })
-        .catch((error) => {
+        .catch(error => {
             console.error(`Error uploading image ${filename}: ${error}`);
         });
+    };
 }
 
 function deleteImageFromIndexedDB(db, timestamp) {
@@ -90,7 +94,7 @@ submitButton.addEventListener('click', () => {
         const file = imageInput.files[0];
         initIndexedDB((db) => {
             saveImageToIndexedDB(db, file);
-            uploadImageToAPI(db, file.lastModified, file);
         });
     }
 });
+
