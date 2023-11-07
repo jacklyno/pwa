@@ -56,7 +56,7 @@ function uploadImageToAPI(db, formattedTimestamp) {
 
     getRequest.onsuccess = function () {
         const fileData = getRequest.result.file;
-        const filename = `image-${formattedTimestamp}.jpg`;
+        const filename = `${formattedTimestamp}.jpg`;
 
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "image/jpeg"); // Update content type as needed
