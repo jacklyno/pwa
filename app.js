@@ -24,7 +24,39 @@ cancelButton.addEventListener('click', () => {
     imageInput.value = '';
 });
 
+// Function to convert the selected image to a base64 string
+function imageToBase64(file, callback) {
+    const reader = new FileReader();
+    reader.onload = function (event) {
+        callback(event.target.result);
+    };
+    reader.readAsDataURL(file);
+}
+
+// Function to save the base64 string to IndexedDB with a timestamp key
+function saveToIndexedDBWithTimestamp(value) {
+    const request = indexedDB.open('indexedbd1', 1);
+
+    request.onsuccess = function (event) {
+        const db = event.target.result;
+        const transaction = db.transaction('images', 'readwrite'); // Object store name is 'images'
+        const store = transaction.objectStore('images');
+        const timestamp = new Date().getTime(); // Get the current timestamp
+        store.put(value, timestamp); // Use the timestamp as the key
+
+        transaction.oncomplete = function () {
+            console.log('Image saved to IndexedDB with timestamp key:', timestamp);
+            db.close();
+        };
+    };
+}
+
 submitButton.addEventListener('click', () => {
     // Add your logic to handle image submission, if needed
-    // This can include uploading the image to a server or performing other actions.
+    if (imageInput.files.length > 0) {
+        const file = imageInput.files[0];
+        imageToBase64(file, (base64String) => {
+            saveToIndexedDBWithTimestamp(base64String);
+        });
+    }
 });
