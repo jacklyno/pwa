@@ -3,6 +3,7 @@ const imageInput = document.getElementById('imageInput');
 const previewImage = document.getElementById('previewImage');
 const cancelButton = document.getElementById('cancelButton');
 const submitButton = document.getElementById('submitButton');
+
 const dbName = 'indexedbd1';
 const objectStoreName = 'images';
 const apiUrl = 'https://cmja2h0xlg.execute-api.us-west-1.amazonaws.com/beta/mvrs/';
