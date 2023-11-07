@@ -7,7 +7,7 @@ const submitButton = document.getElementById('submitButton');
 const dbName = 'indexedbd1';
 const objectStoreName = 'images';
 
-// Function to initialize IndexedDB and create the object store
+// Function to initialize IndexedDB and create the object store note
 function initIndexedDB(callback) {
     const request = indexedDB.open(dbName, 1);
 
