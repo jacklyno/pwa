@@ -3,6 +3,7 @@ const imageInput = document.getElementById('imageInput');
 const previewImage = document.getElementById('previewImage');
 const cancelButton = document.getElementById('cancelButton');
 const submitButton = document.getElementById('submitButton');
+
 const dbName = 'indexedbd1';
 const objectStoreName = 'images';
 const apiUrl = 'https://cmja2h0xlg.execute-api.us-west-1.amazonaws.com/beta/mvrs/';
@@ -44,21 +45,28 @@ function uploadImageToAPI(db, timestamp) {
         const fileData = getRequest.result.file;
         const filename = `image-${timestamp}.jpg`;
 
-        fetch(apiUrl + filename, {
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "image/jpeg"); // Update content type as needed
+
+        const requestOptions = {
             method: 'PUT',
-            body: fileData
-        })
-        .then(response => {
-            if (response.ok) {
-                console.log(`Image uploaded to ${apiUrl}${filename}`);
-                deleteImageFromIndexedDB(db, timestamp);
-            } else {
-                console.error(`Error uploading image ${filename}: ${response.status}`);
-            }
-        })
-        .catch(error => {
-            console.error(`Error uploading image ${filename}: ${error}`);
-        });
+            headers: myHeaders,
+            body: fileData,
+            redirect: 'follow'
+        };
+
+        fetch(apiUrl + filename, requestOptions)
+            .then(response => {
+                if (response.ok) {
+                    console.log(`Image uploaded to ${apiUrl}${filename}`);
+                    deleteImageFromIndexedDB(db, timestamp);
+                } else {
+                    console.error(`Error uploading image ${filename}: ${response.status}`);
+                }
+            })
+            .catch(error => {
+                console.error(`Error uploading image ${filename}: ${error}`);
+            });
     };
 }
 
@@ -97,4 +105,3 @@ submitButton.addEventListener('click', () => {
         });
     }
 });
-
