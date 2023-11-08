@@ -6,7 +6,7 @@ const submitButton = document.getElementById('submitButton');
 
 const dbName = 'indexedbd1';
 const objectStoreName = 'images';
-const apiUrl = 'https://1akhvnq9dd.execute-api.us-west-1.amazonaws.com/beta/mvrs/';
+const apiUrl = 'https://cqiixj66hi.execute-api.us-west-1.amazonaws.com/dev/mvrs/';
 
 function formatDateToISO(timestamp) {
     const date = new Date(timestamp);
