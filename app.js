@@ -3,9 +3,7 @@ const imageInput = document.getElementById('imageInput');
 const previewImage = document.getElementById('previewImage');
 const cancelButton = document.getElementById('cancelButton');
 const submitButton = document.getElementById('submitButton');
-
-const dbName = 'indexeddb1';
-const objectStoreName = 'images';
+const storeName = 'images';
 
 function formatDateToISO(timestamp) {
     const date = new Date(timestamp);
@@ -19,13 +17,15 @@ function formatDateToISO(timestamp) {
     return `${month}-${day}-${year}T${hours}-${minutes}-${seconds}`;
 }
 
+let db;
+
 function initIndexedDB(callback) {
     const request = indexedDB.open(dbName, 1);
 
     request.onupgradeneeded = function (event) {
         const db = event.target.result;
-        if (!db.objectStoreNames.contains(objectStoreName)) {
-            const objectStore = db.createObjectStore(objectStoreName, { keyPath: 'timestamp' });
+        if (!db.objectStoreNames.contains(storeName)) {
+            const objectStore = db.createObjectStore(storeName, { keyPath: 'timestamp' });
             objectStore.createIndex('timestamp', 'timestamp', { unique: true });
         }
     };
@@ -46,23 +46,27 @@ submitButton.addEventListener('click', () => {
 });
 
 function saveImageToIndexedDB(db, file) {
-    const transaction = db.transaction(objectStoreName, 'readwrite');
-    const store = transaction.objectStore(objectStoreName);
+    const transaction = db.transaction(storeName, 'readwrite');
+    const store = transaction.objectStore(storeName);
     const timestamp = new Date().getTime();
     const formattedTimestamp = formatDateToISO(timestamp);
 
     const reader = new FileReader();
     reader.onload = function () {
-        const arrayBuffer = reader.result; // Use ArrayBuffer to store image data
+        const arrayBuffer = reader.result;
 
-        store.put({ timestamp: formattedTimestamp, image: arrayBuffer }); // Store arrayBuffer
+        // Use store.add() to add a new record
+        const request = store.add({ timestamp: formattedTimestamp, image: arrayBuffer });
 
-        transaction.oncomplete = function () {
+        request.onsuccess = function () {
             console.log('Image saved to IndexedDB with timestamp key:', formattedTimestamp);
+            clearGalleryImages();
+            renderAvailableImagesFromDb();
+            renderStorageQuotaInfo();
         };
 
-        transaction.onerror = function (event) {
-            console.error('Error saving image to IndexedDB:', event.target.error);
+        request.onerror = function (event) {
+            console.error('Error adding image to IndexedDB:', event.target.error);
         };
     };
     reader.readAsArrayBuffer(file);
@@ -84,4 +88,5 @@ cancelButton.addEventListener('click', () => {
     previewImage.src = '';
     imageInput.value = '';
 });
+
 
