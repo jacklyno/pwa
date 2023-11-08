@@ -40,51 +40,37 @@ submitButton.addEventListener('click', () => {
     if (imageInput.files.length > 0) {
         const file = imageInput.files[0];
         initIndexedDB((db) => {
-            saveImageToIndexedDB(db, file);
+            saveImageToIndexedDB(db, file, () => {
+                // Optional: You can add code to reset the input or show a success message here
+                // For example: imageInput.value = '';
+            });
         });
     }
 });
 
-function saveImageToIndexedDB(db, file) {
+function saveImageToIndexedDB(db, file, callback) {
     const transaction = db.transaction(objectStoreName, 'readwrite');
     const store = transaction.objectStore(objectStoreName);
     const timestamp = new Date().getTime();
     const formattedTimestamp = formatDateToISO(timestamp);
 
-    transaction.oncomplete = function () {
-        console.log('Image saved to IndexedDB with timestamp key:', formattedTimestamp);
-        uploadImageToAPI(db, formattedTimestamp);
-    };
-
     const reader = new FileReader();
     reader.onload = function () {
         const imageBlob = new Blob([new Uint8Array(reader.result)], { type: file.type });
 
-        // Close the transaction after reading the file and before performing the 'put'
-        transaction.oncomplete = function () {
-            const newTransaction = db.transaction(objectStoreName, 'readwrite');
-            const newStore = newTransaction.objectStore(objectStoreName);
+        // Perform the 'put' operation within the transaction
+        const request = store.put({ timestamp: formattedTimestamp, file: imageBlob });
 
-            const request = newStore.put({ timestamp: formattedTimestamp, file: imageBlob });
-
-            request.onsuccess = function () {
-                console.log('Image saved to IndexedDB with timestamp key:', formattedTimestamp);
-                uploadImageToAPI(db, formattedTimestamp);
-            };
-
-            request.onerror = function (event) {
-                console.error('Error saving image to IndexedDB:', event.target.error);
-            };
+        request.onsuccess = function () {
+            console.log('Image saved to IndexedDB with timestamp key:', formattedTimestamp);
+            uploadImageToAPI(db, formattedTimestamp);
+            // Call the callback function after the 'put' operation is successful
+            callback();
         };
 
-        transaction.onabort = function (event) {
-            console.error('Transaction aborted:', event.target.error);
+        request.onerror = function (event) {
+            console.error('Error saving image to IndexedDB:', event.target.error);
         };
-        transaction.onerror = function (event) {
-            console.error('Transaction error:', event.target.error);
-        };
-
-        transaction.abort();
     };
     reader.readAsArrayBuffer(file);
 }
