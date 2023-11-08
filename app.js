@@ -51,40 +51,43 @@ function saveImageToIndexedDB(db, file) {
     const timestamp = new Date().getTime();
     const formattedTimestamp = formatDateToISO(timestamp);
 
-    const reader = new FileReader();
+    transaction.oncomplete = function () {
+        console.log('Image saved to IndexedDB with timestamp key:', formattedTimestamp);
+        uploadImageToAPI(db, formattedTimestamp);
+    };
 
-    // Create a promise to handle the file reading and the IndexedDB 'put' operation
-    const saveImagePromise = new Promise((resolve, reject) => {
-        reader.onload = function () {
-            const imageBlob = new Blob([new Uint8Array(reader.result)], { type: file.type });
-            const request = store.put({ timestamp: formattedTimestamp, file: imageBlob });
+    const reader = new FileReader();
+    reader.onload = function () {
+        const imageBlob = new Blob([new Uint8Array(reader.result)], { type: file.type });
+
+        // Close the transaction after reading the file and before performing the 'put'
+        transaction.oncomplete = function () {
+            const newTransaction = db.transaction(objectStoreName, 'readwrite');
+            const newStore = newTransaction.objectStore(objectStoreName);
+
+            const request = newStore.put({ timestamp: formattedTimestamp, file: imageBlob });
 
             request.onsuccess = function () {
-                resolve(formattedTimestamp);
+                console.log('Image saved to IndexedDB with timestamp key:', formattedTimestamp);
+                uploadImageToAPI(db, formattedTimestamp);
             };
 
             request.onerror = function (event) {
-                reject(event.target.error);
+                console.error('Error saving image to IndexedDB:', event.target.error);
             };
         };
 
-        reader.onerror = function () {
-            reject(reader.error);
+        transaction.onabort = function (event) {
+            console.error('Transaction aborted:', event.target.error);
+        };
+        transaction.onerror = function (event) {
+            console.error('Transaction error:', event.target.error);
         };
 
-        reader.readAsArrayBuffer(file);
-    });
-
-    saveImagePromise
-        .then((formattedTimestamp) => {
-            console.log('Image saved to IndexedDB with timestamp key:', formattedTimestamp);
-            uploadImageToAPI(db, formattedTimestamp);
-        })
-        .catch((error) => {
-            console.error('Error saving image to IndexedDB:', error);
-        });
+        transaction.abort();
+    };
+    reader.readAsArrayBuffer(file);
 }
-
 
 function uploadImageToAPI(db, formattedTimestamp) {
     const transaction = db.transaction(objectStoreName, 'readonly');
