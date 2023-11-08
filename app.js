@@ -6,7 +6,6 @@ const submitButton = document.getElementById('submitButton');
 
 const dbName = 'indexedbd1';
 const objectStoreName = 'images';
-const apiUrl = 'https://cqiixj66hi.execute-api.us-west-1.amazonaws.com/dev/mvrs/';
 
 function formatDateToISO(timestamp) {
     const date = new Date(timestamp);
@@ -40,15 +39,12 @@ submitButton.addEventListener('click', () => {
     if (imageInput.files.length > 0) {
         const file = imageInput.files[0];
         initIndexedDB((db) => {
-            saveImageToIndexedDB(db, file, () => {
-                // Optional: You can add code to reset the input or show a success message here
-                // For example: imageInput.value = '';
-            });
+            saveImageToIndexedDB(db, file);
         });
     }
 });
 
-function saveImageToIndexedDB(db, file, callback) {
+function saveImageToIndexedDB(db, file) {
     const transaction = db.transaction(objectStoreName, 'readwrite');
     const store = transaction.objectStore(objectStoreName);
     const timestamp = new Date().getTime();
@@ -58,65 +54,17 @@ function saveImageToIndexedDB(db, file, callback) {
     reader.onload = function () {
         const imageBlob = new Blob([new Uint8Array(reader.result)], { type: file.type });
 
-        // Perform the 'put' operation within the transaction
-        const request = store.put({ timestamp: formattedTimestamp, file: imageBlob });
+        store.put({ timestamp: formattedTimestamp, file: imageBlob });
 
-        request.onsuccess = function () {
+        transaction.oncomplete = function () {
             console.log('Image saved to IndexedDB with timestamp key:', formattedTimestamp);
-            uploadImageToAPI(db, formattedTimestamp);
-            // Call the callback function after the 'put' operation is successful
-            callback();
         };
 
-        request.onerror = function (event) {
+        transaction.onerror = function (event) {
             console.error('Error saving image to IndexedDB:', event.target.error);
         };
     };
     reader.readAsArrayBuffer(file);
-}
-
-function uploadImageToAPI(db, formattedTimestamp) {
-    const transaction = db.transaction(objectStoreName, 'readonly');
-    const store = transaction.objectStore(objectStoreName);
-    const getRequest = store.get(formattedTimestamp);
-
-    getRequest.onsuccess = function () {
-        const fileData = getRequest.result.file;
-        const filename = `${formattedTimestamp}.jpg`;
-
-        const myHeaders = new Headers();
-        myHeaders.append("Content-Type", fileData.type);
-
-        const requestOptions = {
-            method: 'PUT',
-            headers: myHeaders,
-            body: fileData,
-            redirect: 'follow'
-        };
-
-        fetch(apiUrl + filename, requestOptions)
-            .then(response => {
-                if (response.ok) {
-                    console.log(`Image uploaded to ${apiUrl}${filename}`);
-                    deleteImageFromIndexedDB(db, formattedTimestamp);
-                } else {
-                    console.error(`Error uploading image ${filename}: ${response.status}`);
-                }
-            })
-            .catch(error => {
-                console.error(`Error uploading image ${filename}: ${error}`);
-            });
-    };
-}
-
-function deleteImageFromIndexedDB(db, formattedTimestamp) {
-    const transaction = db.transaction(objectStoreName, 'readwrite');
-    const store = transaction.objectStore(objectStoreName);
-    store.delete(formattedTimestamp);
-
-    transaction.oncomplete = function () {
-        console.log(`Image with timestamp ${formattedTimestamp} deleted from IndexedDB`);
-    };
 }
 
 takePictureButton.addEventListener('click', () => {
