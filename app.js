@@ -56,19 +56,20 @@ function saveImageToIndexedDB(db, file) {
     reader.onload = function () {
         const arrayBuffer = reader.result;
 
-        // Use store.add() to add a new record
-        const request = store.add({ timestamp: formattedTimestamp, image: arrayBuffer });
-
-        request.onsuccess = function () {
+        // Ensure the 'store.add()' is inside the 'reader.onload' callback
+        transaction.oncomplete = function () {
             console.log('Image saved to IndexedDB with timestamp key:', formattedTimestamp);
             clearGalleryImages();
             renderAvailableImagesFromDb();
             renderStorageQuotaInfo();
         };
 
-        request.onerror = function (event) {
+        transaction.onerror = function (event) {
             console.error('Error adding image to IndexedDB:', event.target.error);
         };
+
+        // Use store.add() to add a new record
+        store.add({ timestamp: formattedTimestamp, image: arrayBuffer });
     };
     reader.readAsArrayBuffer(file);
 }
