@@ -53,9 +53,9 @@ function saveImageToIndexedDB(db, file) {
 
     const reader = new FileReader();
     reader.onload = function () {
-        const imageBlob = new Blob([reader.result], { type: file.type }); // Use Blob to store image data
+        const arrayBuffer = reader.result; // Use ArrayBuffer to store image data
 
-        store.put({ timestamp: formattedTimestamp, image: imageBlob }); // Store imageBlob
+        store.put({ timestamp: formattedTimestamp, image: arrayBuffer }); // Store arrayBuffer
 
         transaction.oncomplete = function () {
             console.log('Image saved to IndexedDB with timestamp key:', formattedTimestamp);
