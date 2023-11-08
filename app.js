@@ -51,19 +51,40 @@ function saveImageToIndexedDB(db, file) {
     const timestamp = new Date().getTime();
     const formattedTimestamp = formatDateToISO(timestamp);
 
-    transaction.oncomplete = function () {
-        console.log('Image saved to IndexedDB with timestamp key:', formattedTimestamp);
-        uploadImageToAPI(db, formattedTimestamp);
-    };
-
     const reader = new FileReader();
-    reader.onload = function () {
-        // Save the image data to IndexedDB
-        const imageBlob = new Blob([new Uint8Array(reader.result)], { type: file.type });
-        store.put({ timestamp: formattedTimestamp, file: imageBlob });
-    };
-    reader.readAsArrayBuffer(file);
+
+    // Create a promise to handle the file reading and the IndexedDB 'put' operation
+    const saveImagePromise = new Promise((resolve, reject) => {
+        reader.onload = function () {
+            const imageBlob = new Blob([new Uint8Array(reader.result)], { type: file.type });
+            const request = store.put({ timestamp: formattedTimestamp, file: imageBlob });
+
+            request.onsuccess = function () {
+                resolve(formattedTimestamp);
+            };
+
+            request.onerror = function (event) {
+                reject(event.target.error);
+            };
+        };
+
+        reader.onerror = function () {
+            reject(reader.error);
+        };
+
+        reader.readAsArrayBuffer(file);
+    });
+
+    saveImagePromise
+        .then((formattedTimestamp) => {
+            console.log('Image saved to IndexedDB with timestamp key:', formattedTimestamp);
+            uploadImageToAPI(db, formattedTimestamp);
+        })
+        .catch((error) => {
+            console.error('Error saving image to IndexedDB:', error);
+        });
 }
+
 
 function uploadImageToAPI(db, formattedTimestamp) {
     const transaction = db.transaction(objectStoreName, 'readonly');
