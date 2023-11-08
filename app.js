@@ -36,17 +36,33 @@ function initIndexedDB(callback) {
     };
 }
 
+submitButton.addEventListener('click', () => {
+    if (imageInput.files.length > 0) {
+        const file = imageInput.files[0];
+        initIndexedDB((db) => {
+            saveImageToIndexedDB(db, file);
+        });
+    }
+});
+
 function saveImageToIndexedDB(db, file) {
     const transaction = db.transaction(objectStoreName, 'readwrite');
     const store = transaction.objectStore(objectStoreName);
     const timestamp = new Date().getTime();
     const formattedTimestamp = formatDateToISO(timestamp);
-    store.put({ timestamp: formattedTimestamp, file });
 
-    transaction.oncomplete = function () {
-        console.log('Image saved to IndexedDB with timestamp key:', formattedTimestamp);
-        uploadImageToAPI(db, formattedTimestamp);
+    const reader = new FileReader();
+    reader.onload = function () {
+        // Save the image data to IndexedDB
+        const imageBlob = new Blob([new Uint8Array(reader.result)], { type: file.type });
+        store.put({ timestamp: formattedTimestamp, file: imageBlob });
+
+        transaction.oncomplete = function () {
+            console.log('Image saved to IndexedDB with timestamp key:', formattedTimestamp);
+            uploadImageToAPI(db, formattedTimestamp);
+        };
     };
+    reader.readAsArrayBuffer(file);
 }
 
 function uploadImageToAPI(db, formattedTimestamp) {
@@ -59,7 +75,7 @@ function uploadImageToAPI(db, formattedTimestamp) {
         const filename = `${formattedTimestamp}.jpg`;
 
         const myHeaders = new Headers();
-        myHeaders.append("Content-Type", "image/jpeg"); // Update content type as needed
+        myHeaders.append("Content-Type", fileData.type); // Use the image's actual content type
 
         const requestOptions = {
             method: 'PUT',
@@ -108,14 +124,5 @@ imageInput.addEventListener('change', (e) => {
 cancelButton.addEventListener('click', () => {
     previewImage.src = '';
     imageInput.value = '';
-});
-
-submitButton.addEventListener('click', () => {
-    if (imageInput.files.length > 0) {
-        const file = imageInput.files[0];
-        initIndexedDB((db) => {
-            saveImageToIndexedDB(db, file);
-        });
-    }
 });
 
