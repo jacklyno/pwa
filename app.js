@@ -64,6 +64,10 @@ submitButton.addEventListener('click', () => {
         initIndexedDB((db) => {
             saveImageToIndexedDB(db, file);
         });
+        // Clear the preview
+        previewImage.src = '';
+        // Remove the image file from memory
+        imageInput.value = '';
     }
 });
 
