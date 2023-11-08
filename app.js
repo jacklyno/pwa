@@ -4,6 +4,7 @@ const previewImage = document.getElementById('previewImage');
 const cancelButton = document.getElementById('cancelButton');
 const submitButton = document.getElementById('submitButton');
 const storeName = 'images';
+const dbName = 'indexeddb1';
 
 function formatDateToISO(timestamp) {
     const date = new Date(timestamp);
