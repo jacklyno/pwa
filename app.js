@@ -4,38 +4,9 @@ const previewImage = document.getElementById('previewImage');
 const cancelButton = document.getElementById('cancelButton');
 const submitButton = document.getElementById('submitButton');
 const storeName = 'images';
-const dbName = 'indexeddb1';
+const dbName = 'indexeddb1'; // Define the dbName variable
 
-function formatDateToISO(timestamp) {
-    const date = new Date(timestamp);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
-
-    return `${month}-${day}-${year}T${hours}-${minutes}-${seconds}`;
-}
-
-let db;
-
-function initIndexedDB(callback) {
-    const request = indexedDB.open(dbName, 1);
-
-    request.onupgradeneeded = function (event) {
-        const db = event.target.result;
-        if (!db.objectStoreNames.contains(storeName)) {
-            const objectStore = db.createObjectStore(storeName, { keyPath: 'timestamp' });
-            objectStore.createIndex('timestamp', 'timestamp', { unique: true });
-        }
-    };
-
-    request.onsuccess = function (event) {
-        const db = event.target.result;
-        callback(db);
-    };
-}
+// ...
 
 submitButton.addEventListener('click', () => {
     if (imageInput.files.length > 0) {
@@ -56,39 +27,29 @@ function saveImageToIndexedDB(db, file) {
     reader.onload = function () {
         const arrayBuffer = reader.result;
 
-        // Ensure the 'store.add()' is inside the 'reader.onload' callback
         transaction.oncomplete = function () {
-            console.log('Image saved to IndexedDB with timestamp key:', formattedTimestamp);
-            clearGalleryImages();
-            renderAvailableImagesFromDb();
-            renderStorageQuotaInfo();
+            const request = store.add({ timestamp: formattedTimestamp, image: arrayBuffer });
+
+            request.onsuccess = function () {
+                console.log('Image saved to IndexedDB with timestamp key:', formattedTimestamp);
+                clearGalleryImages();
+                renderAvailableImagesFromDb();
+                renderStorageQuotaInfo();
+            };
+
+            request.onerror = function (event) {
+                console.error('Error adding image to IndexedDB:', event.target.error);
+            };
         };
 
-        transaction.onerror = function (event) {
-            console.error('Error adding image to IndexedDB:', event.target.error);
-        };
-
-        // Use store.add() to add a new record
-        store.add({ timestamp: formattedTimestamp, image: arrayBuffer });
+        reader.readAsArrayBuffer(file);
     };
-    reader.readAsArrayBuffer(file);
 }
 
-takePictureButton.addEventListener('click', () => {
-    imageInput.click();
-});
-
-imageInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-        const imageURL = URL.createObjectURL(file);
-        previewImage.src = imageURL;
-    }
-});
+// ...
 
 cancelButton.addEventListener('click', () => {
     previewImage.src = '';
     imageInput.value = '';
 });
-
 
