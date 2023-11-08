@@ -51,16 +51,16 @@ function saveImageToIndexedDB(db, file) {
     const timestamp = new Date().getTime();
     const formattedTimestamp = formatDateToISO(timestamp);
 
+    transaction.oncomplete = function () {
+        console.log('Image saved to IndexedDB with timestamp key:', formattedTimestamp);
+        uploadImageToAPI(db, formattedTimestamp);
+    };
+
     const reader = new FileReader();
     reader.onload = function () {
         // Save the image data to IndexedDB
         const imageBlob = new Blob([new Uint8Array(reader.result)], { type: file.type });
         store.put({ timestamp: formattedTimestamp, file: imageBlob });
-
-        transaction.oncomplete = function () {
-            console.log('Image saved to IndexedDB with timestamp key:', formattedTimestamp);
-            uploadImageToAPI(db, formattedTimestamp);
-        };
     };
     reader.readAsArrayBuffer(file);
 }
@@ -75,7 +75,7 @@ function uploadImageToAPI(db, formattedTimestamp) {
         const filename = `${formattedTimestamp}.jpg`;
 
         const myHeaders = new Headers();
-        myHeaders.append("Content-Type", fileData.type); // Use the image's actual content type
+        myHeaders.append("Content-Type", fileData.type);
 
         const requestOptions = {
             method: 'PUT',
