@@ -55,4 +55,33 @@ function saveImageToIndexedDB(db, file) {
     reader.onload = function () {
         const imageBlob = new Blob([reader.result], { type: file.type }); // Use Blob to store image data
 
-        store.put({ timestamp: formattedTimestamp,
+        store.put({ timestamp: formattedTimestamp, image: imageBlob }); // Store imageBlob
+
+        transaction.oncomplete = function () {
+            console.log('Image saved to IndexedDB with timestamp key:', formattedTimestamp);
+        };
+
+        transaction.onerror = function (event) {
+            console.error('Error saving image to IndexedDB:', event.target.error);
+        };
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+takePictureButton.addEventListener('click', () => {
+    imageInput.click();
+});
+
+imageInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const imageURL = URL.createObjectURL(file);
+        previewImage.src = imageURL;
+    }
+});
+
+cancelButton.addEventListener('click', () => {
+    previewImage.src = '';
+    imageInput.value = '';
+});
+
