@@ -1,4 +1,3 @@
-const dbName = 'indexedbd1';
 const objectStoreName = 'images';
 const apiUrl = 'https://cqiixj66hi.execute-api.us-west-1.amazonaws.com/dev/mvrs/';
 
