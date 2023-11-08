@@ -37,37 +37,38 @@ function saveImageToIndexedDB(db, file) {
     };
 }
 
-takePictureButton.addEventListener('click', () => {
-    imageInput.click();
-});
+// Initialize IndexedDB first
+initIndexedDB((db) => {
+    // Now, set up event listeners and other logic involving IndexedDB
+    takePictureButton.addEventListener('click', () => {
+        imageInput.click();
+    });
 
-imageInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-        const imageURL = URL.createObjectURL(file);
-        previewImage.src = imageURL;
-    }
-});
-
-// Add event listeners for the "Cancel" and "Submit" buttons
-cancelButton.addEventListener('click', () => {
-    // Clear the preview
-    previewImage.src = '';
-    // Remove the image file from memory
-    imageInput.value = '';
-});
-
-submitButton.addEventListener('click', () => {
-    // Add your logic to handle image submission, if needed
-    if (imageInput.files.length > 0) {
-        const file = imageInput.files[0];
-        initIndexedDB((db) => {
-            saveImageToIndexedDB(db, file);
+    imageInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const imageURL = URL.createObjectURL(file);
+            previewImage.src = imageURL;
         });
-        // Clear the preview
-        previewImage.src = '';
-        // Remove the image file from memory
-        imageInput.value = '';
-    }
-});
+        
+        // Add event listeners for the "Cancel" and "Submit" buttons
+        cancelButton.addEventListener('click', () => {
+            // Clear the preview
+            previewImage.src = '';
+            // Remove the image file from memory
+            imageInput.value = '';
+        });
 
+        submitButton.addEventListener('click', () => {
+            // Add your logic to handle image submission, if needed
+            if (imageInput.files.length > 0) {
+                const file = imageInput.files[0];
+                saveImageToIndexedDB(db, file);
+                // Clear the preview
+                previewImage.src = '';
+                // Remove the image file from memory
+                imageInput.value = '';
+            }
+        });
+    });
+});
