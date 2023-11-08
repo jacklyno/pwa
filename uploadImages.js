@@ -1,3 +1,4 @@
+
 const apiUrl = 'https://cqiixj66hi.execute-api.us-west-1.amazonaws.com/dev/mvrs/';
 
 function uploadImages() {
@@ -5,6 +6,13 @@ function uploadImages() {
 
     request.onsuccess = function (event) {
         const db = event.target.result;
+
+        if (!db.objectStoreNames.contains(objectStoreName)) {
+            // If the object store doesn't exist, simply continue without attempting uploads.
+            db.close();
+            return;
+        }
+
         const transaction = db.transaction(objectStoreName, 'readonly');
         const store = transaction.objectStore(objectStoreName);
 
@@ -54,3 +62,4 @@ function uploadImageToAPI(apiUrl, imageFile) {
 // Set up periodic image upload (adjust the interval as needed)
 const uploadInterval = 5000; // Upload every 5 seconds
 setInterval(uploadImages, uploadInterval);
+
