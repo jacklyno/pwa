@@ -9,19 +9,11 @@ function saveImageToIndexedDB(db, file) {
     const transaction = db.transaction(objectStoreName, 'readwrite');
     const store = transaction.objectStore(objectStoreName);
     const timestamp = new Date().getTime(); // Get the current timestamp
+    store.put({ timestamp, file });
 
-    const reader = new FileReader();
-
-    reader.onload = function (event) {
-        const imageData = event.target.result;
-        store.put({ timestamp, imageData });
-
-        transaction.oncomplete = function () {
-            console.log('Image saved to IndexedDB with timestamp key:', timestamp);
-        };
+    transaction.oncomplete = function () {
+        console.log('Image saved to IndexedDB with timestamp key:', timestamp);
     };
-
-    reader.readAsArrayBuffer(file);
 }
 
 // Event listeners for specific buttons
