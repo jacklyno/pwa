@@ -34,21 +34,23 @@ function saveImageToIndexedDB(db, file) {
     };
 }
 
-// Initialize IndexedDB first
-initIndexedDB((db) => {
-    // Now, set up event listeners and other logic involving IndexedDB
-    takePictureButton.addEventListener('click', () => {
-        imageInput.click();
-    });
+// Add event listeners for the "Cancel" and "Submit" buttons
 
-    imageInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-        const imageURL = URL.createObjectURL(file);
-        previewImage.src = imageURL;
-    }
-    });
-        
+window.addEventListener('load', async () => {
+    // Initialize IndexedDB when the page loads
+    initIndexedDB((db) => {
+        // Now, set up event listeners and other logic involving IndexedDB
+        takePictureButton.addEventListener('click', () => {
+            imageInput.click();
+        });
+
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const imageURL = URL.createObjectURL(file);
+                previewImage.src = imageURL;
+            });
+
         // Add event listeners for the "Cancel" and "Submit" buttons
         cancelButton.addEventListener('click', () => {
             // Clear the preview
@@ -69,3 +71,4 @@ initIndexedDB((db) => {
             }
         });
     });
+});
