@@ -1,7 +1,5 @@
-
 const apiUrl = 'https://cqiixj66hi.execute-api.us-west-1.amazonaws.com/dev/mvrs/';
 
-// Function to upload images from IndexedDB to the API
 function uploadImages() {
     const request = indexedDB.open(dbName, 1);
 
@@ -22,10 +20,9 @@ function uploadImages() {
             if (cursor) {
                 const timestamp = cursor.key;
                 const imageFile = cursor.value.file;
-                const filename = `image-${timestamp}.jpg`; // Customize the filename as needed
 
-                // Make the PUT request to your API with the image data
-                uploadImageToAPI(apiUrl + filename, imageFile);
+                // Upload the image to the API
+                uploadImageToAPI(apiUrl, timestamp, imageFile);
 
                 // Continue iterating through images
                 cursor.continue();
@@ -38,33 +35,25 @@ function uploadImages() {
     };
 }
 
-// Function to upload an image to the API
-function uploadImageToAPI(apiUrl, imageFile) {
-    // Create a FormData object to send the image in binary format
-    const formData = new FormData();
-    formData.append('file', imageFile);
-
-    const myHeaders = new Headers();
-    myHeaders.append("Content-Type", "image/jpeg");
-
+function uploadImageToAPI(apiUrl, timestamp, imageFile) {
     const requestOptions = {
         method: 'PUT',
-        headers: myHeaders,
-        body: formData,
-        redirect: 'follow',
+        body: imageFile,
+        headers: {
+            'Content-Type': 'image/jpeg', // Adjust the content type as needed
+        },
     };
 
-    fetch(apiUrl, requestOptions)
-        .then(response => {
+    fetch(apiUrl + timestamp + '.jpg', requestOptions)
+        .then((response) => {
             if (response.ok) {
                 // Image uploaded successfully, you may want to remove it from IndexedDB
                 console.log('Image uploaded successfully');
-                // You can add a call to remove the image from IndexedDB here
             } else {
                 console.error('Error uploading image:', response.status, response.statusText);
             }
         })
-        .catch(error => {
+        .catch((error) => {
             console.error('Error uploading image:', error);
         });
 }
@@ -72,3 +61,4 @@ function uploadImageToAPI(apiUrl, imageFile) {
 // Set up periodic image upload (adjust the interval as needed)
 const uploadInterval = 5000; // Upload every 5 seconds
 setInterval(uploadImages, uploadInterval);
+
