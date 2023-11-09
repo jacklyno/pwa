@@ -45,11 +45,12 @@ initIndexedDB((db) => {
     });
 
     imageInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const imageURL = URL.createObjectURL(file);
-            previewImage.src = imageURL;
-        });
+    const file = e.target.files[0];
+    if (file) {
+        const imageURL = URL.createObjectURL(file);
+        previewImage.src = imageURL;
+    }
+    });
         
         // Add event listeners for the "Cancel" and "Submit" buttons
         cancelButton.addEventListener('click', () => {
