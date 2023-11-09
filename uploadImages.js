@@ -40,7 +40,7 @@ function uploadImageToAPI(apiUrl, timestamp, imageFile) {
         method: 'PUT',
         body: imageFile,
         headers: {
-            'Content-Type': 'image/jpeg', // Adjust the content type as needed
+            'Content-Type': 'image/jpg', // Adjust the content type as needed
         },
     };
 
