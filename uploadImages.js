@@ -42,6 +42,7 @@ function uploadImageToAPI(apiUrl, imageFile) {
     var requestOptions = {
         method: 'PUT',
         headers: myHeaders,
+        mode:'cors',
         body: imageFile,
         redirect: 'follow'
     };
