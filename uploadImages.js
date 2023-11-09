@@ -22,7 +22,7 @@ function uploadImages() {
                 const imageFile = cursor.value.file;
 
                 // Upload the image to the API
-                uploadImageToAPI(apiUrl, imageFile, timestamp);
+                uploadImageToAPI(apiUrl + timestamp + '.jpg', imageFile);
 
                 // Continue iterating through images
                 cursor.continue();
@@ -35,9 +35,9 @@ function uploadImages() {
     };
 }
 
-function uploadImageToAPI(apiUrl, imageFile, timestamp) {
+function uploadImageToAPI(apiUrl, imageFile) {
     var myHeaders = new Headers();
-    myHeaders.append("Content-Type", "image/jpeg");
+    myHeaders.append("Content-Type", "image/jpg");
 
     var requestOptions = {
         method: 'PUT',
@@ -46,7 +46,7 @@ function uploadImageToAPI(apiUrl, imageFile, timestamp) {
         redirect: 'follow'
     };
 
-    fetch(apiUrl + timestamp + '.jpg', requestOptions)
+    fetch(apiUrl, requestOptions)
         .then(response => {
             if (response.ok) {
                 // Image uploaded successfully, you may want to remove it from IndexedDB
@@ -63,4 +63,3 @@ function uploadImageToAPI(apiUrl, imageFile, timestamp) {
 // Set up periodic image upload (adjust the interval as needed)
 const uploadInterval = 5000; // Upload every 5 seconds
 setInterval(uploadImages, uploadInterval);
-
