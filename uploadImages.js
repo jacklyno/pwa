@@ -38,8 +38,8 @@ function uploadImages() {
 function uploadImageToAPI(apiUrl, imageFile) {
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "image/jpg");
-    myHeaders.append('Access-Control-Allow-Origin,'*');
-    myHeaders.append('Access-Control-Allow-Methods','POST,PATCH,OPTIONS);
+    myHeaders.append("Access-Control-Allow-Origin","*");
+    myHeaders.append("Access-Control-Allow-Methods","PUT, OPTIONS");
 
     var requestOptions = {
         method: 'PUT',
