@@ -49,7 +49,8 @@ window.addEventListener('load', async () => {
             if (file) {
                 const imageURL = URL.createObjectURL(file);
                 previewImage.src = imageURL;
-            });
+            }
+        });
 
         // Add event listeners for the "Cancel" and "Submit" buttons
         cancelButton.addEventListener('click', () => {
