@@ -22,7 +22,7 @@ function uploadImages() {
                 const imageFile = cursor.value.file;
 
                 // Upload the image to the API
-                uploadImageToAPI(apiUrl, timestamp, imageFile);
+                uploadImageToAPI(apiUrl, imageFile, timestamp);
 
                 // Continue iterating through images
                 cursor.continue();
@@ -35,19 +35,19 @@ function uploadImages() {
     };
 }
 
-function uploadImageToAPI(apiUrl, timestamp, imageFile) {
-    const requestOptions = {
+function uploadImageToAPI(apiUrl, imageFile, timestamp) {
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "image/jpeg");
+
+    var requestOptions = {
         method: 'PUT',
+        headers: myHeaders,
         body: imageFile,
-        mode: 'cors',
-        headers: {
-            'Content-Type': 'image/jpg', // Adjust the content type as needed
-            'Origin': 'https://jacklyno.github.io/'
-        },
+        redirect: 'follow'
     };
 
     fetch(apiUrl + timestamp + '.jpg', requestOptions)
-        .then((response) => {
+        .then(response => {
             if (response.ok) {
                 // Image uploaded successfully, you may want to remove it from IndexedDB
                 console.log('Image uploaded successfully');
@@ -55,7 +55,7 @@ function uploadImageToAPI(apiUrl, timestamp, imageFile) {
                 console.error('Error uploading image:', response.status, response.statusText);
             }
         })
-        .catch((error) => {
+        .catch(error => {
             console.error('Error uploading image:', error);
         });
 }
