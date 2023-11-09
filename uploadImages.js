@@ -39,8 +39,10 @@ function uploadImageToAPI(apiUrl, timestamp, imageFile) {
     const requestOptions = {
         method: 'PUT',
         body: imageFile,
+        mode: 'cors',
         headers: {
             'Content-Type': 'image/jpg', // Adjust the content type as needed
+            'Origin': 'https://jacklyno.github.io/'
         },
     };
 
