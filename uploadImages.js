@@ -43,7 +43,7 @@ function uploadImageToAPI(apiUrl, imageFile) {
     formData.append('file', imageFile);
 
     fetch(apiUrl, {
-        method: 'POST',
+        method: 'PUT',
         body: formData,
     })
         .then((response) => {
